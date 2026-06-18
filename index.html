@@ -207,6 +207,14 @@ nav button:hover:not(.active){color:var(--ink)}
 .mappin:hover .pin-dot{background:#a30e1f}
 .mappin.active .pin-dot{background:#FCD116;border-color:#a67c3d}
 
+
+.map-toggle{display:inline-flex;gap:4px;background:var(--paper2);border:1px solid var(--line);border-radius:24px;padding:4px;margin-bottom:20px}
+.mt-btn{font-family:'Inter';font-size:14px;font-weight:600;border:none;background:none;color:var(--muted);padding:8px 16px;border-radius:20px;cursor:pointer;transition:.2s}
+.mt-btn.active{background:var(--green);color:#fff}
+.mappin.now .pin-dot{background:#a67c3d}
+.mappin.now .pin-pulse{background:#a67c3d}
+.mode-hint{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:10px}
+
 footer{background:#2c2620;color:#b5a890;text-align:center;padding:30px 0;font-size:13px}
 footer .demo{color:#d8a;font-size:12px;margin-top:6px}
 @media(max-width:600px){header{padding:36px 0 30px}.statline{gap:18px}.sec-h{font-size:24px}}
@@ -262,6 +270,10 @@ footer .demo{color:#d8a;font-size:12px;margin-top:6px}
   <div class="sec-title">Where We Come From</div>
   <div class="sec-h">Our Homeland — Guyana</div>
   <div class="sec-sub">Many of our elders were born in Guyana, on the northern coast of South America. Tap a location on the map to learn about it — what it’s like today, what it was like when they were born, and who in our family came from there.</div>
+  <div class="map-toggle">
+    <button class="mt-btn active" data-mode="born" onclick="setMapMode('born')">📍 Born Here</button>
+    <button class="mt-btn" data-mode="now" onclick="setMapMode('now')">🏡 Lives Here Now</button>
+  </div>
   <div class="map-wrap">
     <div class="map-stage">
       <div class="map-photo-wrap">
@@ -535,6 +547,46 @@ function regionClick(name){
   document.getElementById("map-detail").innerHTML=h;
 }
 renderPins();renderResidences();
+// ---- Born Here / Lives Here Now toggle ----
+const LIVES = {"Berbice, Guyana": {"note": "Currently living in Berbice", "people": ["Clifford Griffith", "Robert Griffith's children (Robert passed; family remains)", "Akeen Knights", "La Shawn Knights", "La Toya Knights", "Myesha Knights", "Toshia Mc Donald"]}, "Georgetown, Guyana": {"note": "Currently living in Georgetown", "people": ["George Aldon Terrence Knights"]}, "Maryland, USA": {"note": "Currently living in Maryland", "people": ["Nicola Knights", "Niesha Knights", "Amar Knights"]}, "Georgia, USA": {"note": "Currently living in Georgia", "people": ["Grace Angela Joseph & her children"]}};
+let MAP_MODE = 'born';
+function setMapMode(mode){
+  MAP_MODE = mode;
+  document.querySelectorAll('.mt-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
+  document.querySelectorAll('.mappin').forEach(p=>p.classList.toggle('now', mode==='now'));
+  // reset detail panel with a hint
+  const det=document.getElementById('map-detail');
+  if(mode==='born'){
+    det.innerHTML='<div class="md-empty">\uD83D\uDCCD Tap a marker to see who in our family was BORN there \u2014 and what that place was like.</div>';
+  } else {
+    // show a summary of who lives where now
+    let h='<div class="md-region">Where We Live Today</div><div class="md-name">Family Today</div>';
+    h+='<div class="mode-hint">Tap a Guyana marker for residents there, or see all current locations below.</div>';
+    Object.entries(LIVES).forEach(([loc,d])=>{
+      h+='<div class="md-block"><div class="mb-label"><span class="dotcol" style="background:#a67c3d"></span>'+loc+'</div>';
+      h+='<div class="md-people">'+d.people.map(n=>'<span class="chip">'+n+'</span>').join('')+'</div></div>';
+    });
+    det.innerHTML=h;
+  }
+}
+// Override selectLoc so it respects the mode
+const _origSelectLoc = selectLoc;
+selectLoc = function(name){
+  if(MAP_MODE==='born'){ _origSelectLoc(name); return; }
+  // now mode: show who lives in this Guyana location
+  document.querySelectorAll('.mappin').forEach(p=>p.classList.toggle('active',p.title===name));
+  const key = name==='Georgetown' ? 'Georgetown, Guyana' : (name==='Berbice' ? 'Berbice, Guyana' : null);
+  const det=document.getElementById('map-detail');
+  if(key && LIVES[key]){
+    let h='<div class="md-region">Lives Here Now</div><div class="md-name">'+name+'</div>';
+    h+='<div class="md-block"><div class="mb-label"><span class="dotcol" style="background:#a67c3d"></span>Currently living here</div>';
+    h+='<div class="md-people">'+LIVES[key].people.map(n=>'<span class="chip">'+n+'</span>').join('')+'</div></div>';
+    det.innerHTML=h;
+  } else {
+    det.innerHTML='<div class="md-empty">No family currently recorded as living in '+name+'. Tap Georgetown or Berbice, or see the full list by switching panels.</div>';
+  }
+};
+
 // ---- Photos & Events ----
 const EVENTS = [
   {title:"Family Reunion", meta:"Add your reunion photos here", photos:[]},
