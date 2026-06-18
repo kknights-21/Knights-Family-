@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Knights Family</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2a2420; --paper:#f6f1e7; --paper2:#efe7d8; --gold:#a67c3d; --green:#3a5a40;
+  --rust:#9c5a3c; --line:#d8ccb4; --muted:#8a7e6c; --card:#fffdf8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;color:var(--ink);background:var(--paper);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+h1,h2,h3,.serif{font-family:'Fraunces',serif}
+
+/* header */
+header{background:linear-gradient(160deg,#3a5a40,#2c4631);color:#f6f1e7;padding:48px 0 40px;text-align:center;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(166,124,61,.25),transparent 60%)}
+header .wrap{position:relative;z-index:1}
+.eyebrow{font-size:13px;letter-spacing:.32em;text-transform:uppercase;color:#cdbf9c;margin-bottom:14px}
+header h1{font-size:clamp(38px,7vw,68px);font-weight:600;line-height:1.02;letter-spacing:-.01em}
+.dates{font-style:italic;color:#d8cdb4;margin-top:10px;font-size:18px;font-family:'Fraunces',serif}
+.statline{display:flex;gap:28px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+.stat b{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:#f6f1e7;display:block}
+.stat span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#bdb191}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;background:rgba(246,241,231,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:8px;align-items:center;padding:10px 20px;overflow-x:auto}
+nav button{font-family:'Inter';font-size:14px;font-weight:500;border:none;background:none;color:var(--muted);padding:8px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:.2s}
+nav button.active{background:var(--green);color:#fff}
+nav button:hover:not(.active){color:var(--ink)}
+.search{margin-left:auto;display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:6px 14px;min-width:160px}
+.search input{border:none;outline:none;font-family:'Inter';font-size:14px;background:none;width:100%;color:var(--ink)}
+
+/* sections */
+.view{display:none;padding:36px 0 80px}
+.view.active{display:block}
+.sec-title{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;font-weight:600}
+.sec-h{font-size:30px;font-weight:600;margin-bottom:6px}
+.sec-sub{color:var(--muted);margin-bottom:28px;max-width:60ch}
+
+/* tree */
+.mother-group{margin-bottom:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.mother-head{padding:14px 18px;background:var(--paper2);cursor:pointer;display:flex;align-items:center;gap:12px}
+.mother-head:hover{background:#e8dec9}
+.mother-head .label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)}
+.mother-head h3{font-size:19px;font-weight:600}
+.mother-head .chev{margin-left:auto;color:var(--muted);transition:.3s;font-size:13px}
+.mother-group.open .chev{transform:rotate(90deg)}
+.mother-body{display:none;padding:8px}
+.mother-group.open .mother-body{display:block}
+
+.node{margin:2px 0}
+.node-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;cursor:pointer;transition:.15s}
+.node-row:hover{background:var(--paper2)}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#c9b896,#a67c3d);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces';font-weight:600;font-size:15px;flex-shrink:0}
+.gen2 .avatar{width:44px;height:44px;font-size:17px;background:linear-gradient(135deg,#4a6b50,#2c4631)}
+.node-name{font-weight:600;font-size:15px}
+.gen2 .node-name{font-size:17px}
+.node-meta{font-size:12.5px;color:var(--muted)}
+.kidcount{margin-left:auto;font-size:11px;color:var(--gold);background:#f3ebda;padding:3px 9px;border-radius:10px;white-space:nowrap}
+.children{margin-left:26px;padding-left:14px;border-left:1.5px solid var(--line);display:none}
+.node.open>.children{display:block}
+.toggle{width:16px;text-align:center;color:var(--gold);font-size:11px;flex-shrink:0;transition:.2s}
+.node.open>.node-row .toggle{transform:rotate(90deg)}
+.toggle.empty{visibility:hidden}
+
+/* person modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(42,36,32,.55);z-index:50;align-items:center;justify-content:center;padding:18px}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border-radius:18px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.modal-top{background:linear-gradient(160deg,#3a5a40,#2c4631);padding:30px 26px;color:#f6f1e7;position:relative}
+.modal-top .big-avatar{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,#c9b896,#a67c3d);display:flex;align-items:center;justify-content:center;font-family:'Fraunces';font-size:34px;font-weight:600;color:#fff;margin-bottom:14px;border:3px solid rgba(255,255,255,.25)}
+.modal-top h2{font-size:26px;font-weight:600;line-height:1.1}
+.modal-top .sub{color:#d8cdb4;font-style:italic;margin-top:4px;font-family:'Fraunces',serif}
+.modal-close{position:absolute;top:16px;right:18px;background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px}
+.modal-body{padding:22px 26px}
+.field{margin-bottom:16px}
+.field .k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;font-weight:600}
+.field .v{font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--paper2);padding:5px 11px;border-radius:14px;font-size:13px;cursor:pointer;border:1px solid var(--line)}
+.chip:hover{background:#e8dec9}
+.bio-empty{font-style:italic;color:var(--muted);font-size:14px;background:var(--paper);padding:12px 14px;border-radius:10px;border:1px dashed var(--line)}
+
+/* announcements */
+.ann{display:flex;gap:16px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px}
+.ann-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ann h4{font-size:17px;font-weight:600;margin-bottom:2px}
+.ann .when{font-size:12px;color:var(--muted);margin-bottom:8px}
+.ann p{font-size:14.5px;color:#4a4138}
+.demo-tag{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:#f3ebda;color:var(--gold);padding:2px 8px;border-radius:8px;margin-left:8px;vertical-align:middle}
+
+/* submit */
+.card-form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:560px}
+.card-form label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px;color:var(--ink)}
+.card-form input,.card-form textarea,.card-form select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-family:'Inter';font-size:14px;background:var(--paper);outline:none}
+.card-form input:focus,.card-form textarea:focus{border-color:var(--gold)}
+.card-form button{margin-top:20px;background:var(--green);color:#fff;border:none;padding:13px 24px;border-radius:10px;font-family:'Inter';font-weight:600;font-size:15px;cursor:pointer}
+.note{background:#f3ebda;border-radius:10px;padding:13px 15px;font-size:13px;color:#6b5d44;margin-top:18px}
+
+
+.verify-note{display:flex;gap:13px;align-items:flex-start;background:#f7eeda;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:12px;padding:15px 18px;margin-bottom:26px}
+.verify-note .vn-ico{color:var(--gold);font-size:19px;line-height:1;flex-shrink:0;margin-top:1px}
+.verify-note .vn-body{font-size:14px;color:#6b5a3c}
+.verify-note .vn-body b{color:#8a6420}
+.verify-note a{color:var(--green);font-weight:600;text-decoration:underline;cursor:pointer}
+
+
+/* ---- Guyana heritage ---- */
+.gy-flag{position:relative;width:74px;height:44px;border-radius:4px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;background:#009E49}
+.gy-flag .gold{position:absolute;top:0;left:0;width:0;height:0;border-top:22px solid transparent;border-bottom:22px solid transparent;border-left:74px solid #fff}
+.gy-flag .gold2{position:absolute;top:3px;left:0;width:0;height:0;border-top:19px solid transparent;border-bottom:19px solid transparent;border-left:67px solid #FCD116}
+.gy-flag .red{position:absolute;top:0;left:0;width:0;height:0;border-top:22px solid transparent;border-bottom:22px solid transparent;border-left:40px solid #000}
+.gy-flag .red2{position:absolute;top:2.5px;left:0;width:0;height:0;border-top:19.5px solid transparent;border-bottom:19.5px solid transparent;border-left:35px solid #CE1126}
+.gy-stripe{height:5px;width:100%;display:flex}
+.gy-stripe i{flex:1}
+.gy-stripe i:nth-child(1){background:#009E49}
+.gy-stripe i:nth-child(2){background:#FCD116}
+.gy-stripe i:nth-child(3){background:#CE1126}
+.gy-stripe i:nth-child(4){background:#000}
+.gy-stripe i:nth-child(5){background:#fff}
+.heritage-line{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:24px}
+.heritage-line .ht-text{text-align:left}
+.heritage-line .ht-text b{display:block;font-family:'Fraunces',serif;font-size:15px;color:#f6f1e7}
+.heritage-line .ht-text span{font-size:12px;color:#bdb191;letter-spacing:.04em}
+.heritage-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin-bottom:26px;display:flex;gap:20px;align-items:flex-start}
+.heritage-card .hc-body h3{font-family:'Fraunces',serif;font-size:20px;color:var(--green);margin-bottom:6px}
+.heritage-card .hc-body p{font-size:14px;color:#5a5043;margin-bottom:8px}
+.heritage-card .hc-body .meanings{font-size:12.5px;color:var(--muted);line-height:1.7}
+.heritage-card .hc-body .meanings b{color:var(--gold)}
+@media(max-width:600px){.heritage-card{flex-direction:column;align-items:center;text-align:center}.gy-flag{width:96px;height:58px}.gy-flag .gold{border-top-width:29px;border-bottom-width:29px;border-left-width:96px}.gy-flag .gold2{top:4px;border-top-width:25px;border-bottom-width:25px;border-left-width:87px}.gy-flag .red{border-top-width:29px;border-bottom-width:29px;border-left-width:52px}.gy-flag .red2{top:3.5px;border-top-width:25.5px;border-bottom-width:25.5px;border-left-width:46px}}
+
+
+/* ---- homeland map ---- */
+.map-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media(max-width:760px){.map-wrap{grid-template-columns:1fr}}
+.map-stage{background:linear-gradient(165deg,#dCEbF2,#cfe0ea);border:1px solid var(--line);border-radius:16px;padding:10px;position:relative;overflow:hidden}
+.map-stage svg{width:100%;height:auto;display:block}
+.pin{cursor:pointer;transition:.2s}
+.pin circle.dot{fill:#CE1126;stroke:#fff;stroke-width:3}
+.pin:hover circle.dot{fill:#a30e1f}
+.pin circle.pulse{fill:#CE1126;opacity:.3}
+.pin text{font-family:'Inter';font-size:13px;font-weight:600;fill:#2a2420}
+.pin.active circle.dot{fill:#FCD116;stroke:#a67c3d}
+.map-detail{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;min-height:300px}
+.map-detail .md-empty{color:var(--muted);font-style:italic;text-align:center;padding:40px 10px;font-size:14px}
+.md-region{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:4px}
+.md-name{font-family:'Fraunces',serif;font-size:26px;color:var(--green);margin-bottom:14px}
+.md-block{margin-bottom:16px}
+.md-block .mb-label{display:flex;align-items:center;gap:7px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--ink);margin-bottom:5px}
+.md-block .mb-label .dotcol{width:9px;height:9px;border-radius:50%}
+.md-block p{font-size:14px;color:#4a4138;line-height:1.6}
+.md-fact{background:#f7eeda;border-left:3px solid var(--gold);border-radius:8px;padding:11px 14px;font-size:13.5px;color:#6b5a3c;margin-top:6px}
+.md-people{margin-top:8px}
+.md-people .chip{display:inline-block;background:var(--paper2);padding:5px 11px;border-radius:14px;font-size:13px;margin:3px 3px 0 0;border:1px solid var(--line)}
+.diaspora{margin-top:30px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+.diaspora h3{font-family:'Fraunces',serif;font-size:19px;color:var(--green);margin-bottom:6px}
+.diaspora p{font-size:14px;color:var(--muted);margin-bottom:12px}
+.diaspora .dgroup{margin-bottom:10px}
+.diaspora .dgroup b{font-size:13px;color:var(--ink)}
+
+
+.today-wrap{margin-top:10px}
+.world-stage{background:linear-gradient(165deg,#dCEbF2,#cfe0ea);border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:20px}
+.world-stage svg{width:100%;height:auto;display:block}
+.res-row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 18px;margin-bottom:11px;transition:.4s}
+.res-row.flash{background:#fdf3d6;border-color:var(--gold)}
+.res-loc{font-family:'Fraunces',serif;font-size:17px;color:var(--green);font-weight:600}
+.res-branch{font-size:12px;color:var(--gold);letter-spacing:.04em;margin:2px 0 8px;font-weight:600}
+.res-people .chip{display:inline-block;background:var(--paper2);padding:5px 11px;border-radius:14px;font-size:13px;margin:3px 3px 0 0;border:1px solid var(--line)}
+
+.region{cursor:pointer;transition:.18s}.region:hover{opacity:1;stroke-width:2.5px}.region.sel{opacity:1;stroke:#FCD116;stroke-width:3px}.map-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:10px;padding:8px}.map-legend span{display:flex;align-items:center;gap:6px;font-size:12px;color:#5a5043}.map-legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+footer{background:#2c2620;color:#b5a890;text-align:center;padding:30px 0;font-size:13px}
+footer .demo{color:#d8a;font-size:12px;margin-top:6px}
+@media(max-width:600px){header{padding:36px 0 30px}.statline{gap:18px}.sec-h{font-size:24px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">A Family Legacy</div>
+    <h1>The Knights Family</h1>
+    <div class="dates">Descendants of Hilbert Augusta Knights &middot; 1906&ndash;1975</div>
+    <div class="statline">
+      <div class="stat"><b id="s-total">0</b><span>Family Members</span></div>
+      <div class="stat"><b>5</b><span>Generations</span></div>
+      <div class="stat"><b id="s-branches">17</b><span>Branches</span></div>
+    </div>
+    <div class="heritage-line"><div class="gy-flag"><div class="gold"></div><div class="gold2"></div><div class="red"></div><div class="red2"></div></div><div class="ht-text"><b>Rooted in Guyana</b><span>Our family's homeland &middot; The Golden Arrowhead</span></div></div>
+  </div>
+</header>
+
+<div class="gy-stripe"><i></i><i></i><i></i><i></i><i></i></div>
+<nav><div class="wrap">
+  <button class="active" data-view="tree">Family Tree</button>
+  <button data-view="news">Family News</button>
+  <button data-view="homeland">Our Homeland</button>
+  <button data-view="share">Share Your Story</button>
+  <div class="search">
+    <span style="color:var(--muted)">&#9906;</span>
+    <input id="search" placeholder="Search a name...">
+  </div>
+</div></nav>
+
+<div class="wrap">
+
+<section class="view active" id="view-tree">
+  <div class="heritage-card"><div class="gy-flag"><div class="gold"></div><div class="gold2"></div><div class="red"></div><div class="red2"></div></div><div class="hc-body">
+    <h3>Our Guyanese Heritage</h3>
+    <p>The Knights family traces its roots to Guyana, on the northern coast of South America &mdash; the only English-speaking nation on the continent, known as the <i>Land of Many Waters</i>.</p>
+    <div class="meanings">The national flag, the <b>Golden Arrowhead</b>, carries five meanings we carry with us: <b>green</b> for the forests and fields, <b>gold</b> for the nation's wealth and a bright future, <b>red</b> for zeal and sacrifice, <b>black</b> for endurance and perseverance, and <b>white</b> for the many rivers.</div>
+  </div></div>
+  <div class="verify-note">
+    <span class="vn-ico">&#9670;</span>
+    <div class="vn-body"><b>Some details are still being verified.</b> Parts of this tree may be incomplete or incorrect while we confirm names, dates, and relationships. If you have updated or correct information, please <a onclick="document.querySelector('nav button[data-view=share]').click()">share it here</a> &mdash; or reach out to <b>Kwame Knights</b>. Thank you for helping keep our family history accurate.</div>
+  </div>
+  <div class="sec-title">Explore</div>
+  <div class="sec-h">The Family Tree</div>
+  <div class="sec-sub">Hilbert&rsquo;s children are grouped by their mother. Tap a branch to open it, then tap any name to learn about them.</div>
+  <div id="tree"></div>
+</section>
+
+<section class="view" id="view-homeland">
+  <div class="sec-title">Where We Come From</div>
+  <div class="sec-h">Our Homeland — Guyana</div>
+  <div class="sec-sub">Many of our elders were born in Guyana, on the northern coast of South America. Tap a location on the map to learn about it — what it’s like today, what it was like when they were born, and who in our family came from there.</div>
+  <div class="map-wrap">
+    <div class="map-stage">
+      <svg viewBox="0 0 420 520" id="gymap">
+<defs><filter id="rsh" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-color="#000" flood-opacity="0.25"/></filter></defs>
+<path class="region" data-region="Barima-Waini" data-county="Essequibo" d="M70,70 L150,40 L210,75 L200,140 L150,165 L95,150 L65,110 Z" fill="#4a6b50" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Barima-Waini')"/>
+<path class="region" data-region="Pomeroon-Supenaam" data-county="Essequibo" d="M200,140 L240,120 L262,165 L250,210 L210,205 L200,165 Z" fill="#4a6b50" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Pomeroon-Supenaam')"/>
+<path class="region" data-region="Essequibo Islands-West Demerara" data-county="Demerara" d="M262,165 L290,155 L300,195 L278,215 L255,205 L250,178 Z" fill="#a67c3d" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Essequibo Islands-West Demerara')"/>
+<path class="region" data-region="Demerara-Mahaica" data-county="Demerara" d="M300,170 L322,165 L330,200 L312,222 L290,210 L295,185 Z" fill="#a67c3d" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Demerara-Mahaica')"/>
+<path class="region" data-region="Mahaica-Berbice" data-county="Berbice" d="M330,185 L358,180 L368,220 L345,245 L322,228 L328,205 Z" fill="#9c5a3c" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Mahaica-Berbice')"/>
+<path class="region" data-region="Cuyuni-Mazaruni" data-county="Essequibo" d="M65,150 L150,165 L210,205 L215,270 L170,320 L100,310 L60,250 L55,190 Z" fill="#4a6b50" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Cuyuni-Mazaruni')"/>
+<path class="region" data-region="Potaro-Siparuni" data-county="Essequibo" d="M170,320 L215,270 L270,290 L275,360 L230,400 L175,380 L160,345 Z" fill="#4a6b50" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Potaro-Siparuni')"/>
+<path class="region" data-region="Upper Demerara-Berbice" data-county="Demerara" d="M215,270 L255,225 L312,235 L330,290 L300,345 L275,360 L270,290 Z" fill="#a67c3d" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Upper Demerara-Berbice')"/>
+<path class="region" data-region="East Berbice-Corentyne" data-county="Berbice" d="M330,250 L368,225 L390,300 L370,400 L320,440 L300,380 L300,345 L330,290 Z" fill="#9c5a3c" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('East Berbice-Corentyne')"/>
+<path class="region" data-region="Upper Takutu-Upper Essequibo" data-county="Essequibo" d="M175,380 L230,400 L275,360 L300,380 L320,440 L280,480 L210,475 L175,430 Z" fill="#4a6b50" stroke="#f6f1e7" stroke-width="2" opacity="0.9" onclick="regionClick('Upper Takutu-Upper Essequibo')"/>
+<text x="135" y="100" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">1</text>
+<text x="228" y="175" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">2</text>
+<text x="276" y="188" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">3</text>
+<text x="310" y="195" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">4</text>
+<text x="345" y="212" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">5</text>
+<text x="130" y="235" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">7</text>
+<text x="215" y="340" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">8</text>
+<text x="275" y="300" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">10</text>
+<text x="345" y="330" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">6</text>
+<text x="245" y="435" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#fff" pointer-events="none" opacity="0.95">9</text>
+<g class="citypin" data-loc="Georgetown" onclick="selectLoc('Georgetown')" style="cursor:pointer">
+<circle cx="305" cy="192" r="13" fill="#CE1126" opacity="0.25"/>
+<circle class="cpd" cx="305" cy="192" r="6" fill="#CE1126" stroke="#fff" stroke-width="2.5"/>
+<text x="305" y="180" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#2a2420">Georgetown</text>
+</g>
+<g class="citypin" data-loc="Berbice" onclick="selectLoc('Berbice')" style="cursor:pointer">
+<circle cx="345" cy="300" r="13" fill="#CE1126" opacity="0.25"/>
+<circle class="cpd" cx="345" cy="300" r="6" fill="#CE1126" stroke="#fff" stroke-width="2.5"/>
+<text x="345" y="288" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#2a2420">Berbice</text>
+</g>
+<g class="citypin" data-loc="Essequibo" onclick="selectLoc('Essequibo')" style="cursor:pointer">
+<circle cx="230" cy="175" r="13" fill="#CE1126" opacity="0.25"/>
+<circle class="cpd" cx="230" cy="175" r="6" fill="#CE1126" stroke="#fff" stroke-width="2.5"/>
+<text x="230" y="163" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#2a2420">Essequibo</text>
+</g>
+<text x="210" y="510" text-anchor="middle" font-family="Fraunces,serif" font-size="13" fill="#2c4631" font-weight="600" opacity="0.6">GUYANA · 10 REGIONS</text>
+</svg>
+      <div class="map-legend"><span><i style="background:#4a6b50"></i>Essequibo County</span><span><i style="background:#a67c3d"></i>Demerara County</span><span><i style="background:#9c5a3c"></i>Berbice County</span></div>
+    </div>
+    <div class="map-detail" id="map-detail">
+      <div class="md-empty">&#128205; Tap a red marker on the map to explore where our family began.</div>
+    </div>
+  </div>
+  <div class="today-wrap">
+    <div class="sec-title" style="margin-top:36px">Across The World</div>
+    <div class="sec-h" style="font-size:24px">Where We Are Today</div>
+    <div class="sec-sub">From Guyana, the family has grown and spread. Each location shows which branch of the family lives there now.</div>
+    <div id="residence-list"></div>
+  </div>
+</section>
+<section class="view" id="view-news">
+  <div class="sec-title">Stay Connected</div>
+  <div class="sec-h">Family News &amp; Announcements</div>
+  <div class="sec-sub">Births, weddings, graduations, milestones, and remembrances &mdash; a place to keep the whole family current.</div>
+  <div id="news"></div>
+</section>
+
+<section class="view" id="view-share">
+  <div class="sec-title">Contribute</div>
+  <div class="sec-h">Share Your Story</div>
+  <div class="sec-sub">Add a short bio for yourself or a family member, share an announcement, or send a memory. Submissions are reviewed before they appear.</div>
+  <div class="card-form">
+    <label>What would you like to share?</label>
+    <select id="f-type">
+      <option>A bio / about a family member</option>
+      <option>An announcement (birth, wedding, graduation...)</option>
+      <option>A memory or family story</option>
+    </select>
+    <label>Your name</label>
+    <input placeholder="So we know who to thank">
+    <label>Who is this about?</label>
+    <input placeholder="Family member's name">
+    <label>Your message</label>
+    <textarea rows="5" placeholder="Tell us the story, the news, or a little about this person..."></textarea>
+    <button onclick="alert('This is a preview \u2014 in the live site this will save your submission for review. For now, it shows how sharing will work.')">Submit for review</button>
+    <div class="note"><b>Preview note:</b> This form shows how family members will contribute. In the live version, submissions are saved and wait for your approval before appearing on the site.</div>
+  </div>
+</section>
+
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<footer>
+  <div>The Knights Family &middot; A living family history</div>
+  <div class="demo">Preview build &middot; family data loaded &middot; sharing &amp; news are demonstrations of the full site</div>
+</footer>
+
+<script>
+const DATA = {"root": "p0", "founders": ["p7", "p8", "p9", "p10", "p18", "p15", "p16", "p13", "p12", "p11", "p14", "p17", "p2", "p5", "p6", "p3", "p4"], "people": {"p0": {"id": "p0", "name": "Hilbert Augusta Knights", "birth": "3 JUL 1906", "death": "22 AUG 1975", "living": false, "gen": 1, "branch": "", "mother": "", "spouses": ["Eunice S. David", "Flo Mom", "Angela Rodrigues", "Gwendoline Brathwaite", "Hilbert Mom", "Hilda Mom"], "children": ["p7", "p8", "p9", "p10", "p18", "p15", "p16", "p13", "p12", "p11", "p14", "p17", "p5", "p2", "p6", "p3", "p4"], "parents": [], "bio": "", "photo": ""}, "p1": {"id": "p1", "name": "Eunice S. David", "birth": "26 NOV 1914", "death": "4 SEP 2000", "living": false, "gen": null, "branch": "", "mother": "", "spouses": ["Hilbert Augusta Knights"], "children": ["p7", "p8", "p9", "p10", "p18", "p15", "p16", "p13", "p12", "p11", "p14", "p17"], "parents": [], "bio": "", "photo": ""}, "p2": {"id": "p2", "name": "Hubert Augustus Knights", "birth": "29 AUG 1932", "death": "31 MAY 2026", "living": false, "gen": 2, "branch": "p2", "mother": "Angela Rodrigues", "spouses": [], "children": ["p50", "p51"], "parents": ["p0", "p140"], "bio": "", "photo": ""}, "p3": {"id": "p3", "name": "Hilbert Augustus Knights", "birth": "2 DEC 1935", "death": "BET 2018 AND 2019", "living": false, "gen": 2, "branch": "p3", "mother": "Muriel Thomas", "spouses": [], "children": ["p55", "p92", "p52", "p53", "p54", "p58", "p59"], "parents": ["p218", "p0"], "bio": "", "photo": ""}, "p4": {"id": "p4", "name": "Hilda Knights", "birth": "15 MAY 1934", "death": "11 NOV 2009", "living": false, "gen": 2, "branch": "p4", "mother": "Hilda Mom", "spouses": [], "children": ["p138", "p139", "p129", "p128", "p130", "p131", "p190"], "parents": ["p219", "p0"], "bio": "", "photo": ""}, "p5": {"id": "p5", "name": "Florian Evadne Knights", "birth": "26 JAN 1935", "death": "6 FEB 2024", "living": false, "gen": 2, "branch": "p5", "mother": "Flo Mom", "spouses": [], "children": [], "parents": ["p144", "p0"], "bio": "", "photo": ""}, "p6": {"id": "p6", "name": "Horace Knights", "birth": "May 1", "death": "", "living": true, "gen": 2, "branch": "p6", "mother": "Gwendoline Brathwaite", "spouses": ["Shamin"], "children": ["p198", "p196", "p197", "p193", "p191", "p195", "p194"], "parents": ["p199", "p0"], "bio": "", "photo": ""}, "p7": {"id": "p7", "name": "John Knights", "birth": "13 FEB 1936", "death": "26 JAN 2022", "living": false, "gen": 2, "branch": "p7", "mother": "Eunice S. David", "spouses": [], "children": ["p28"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p8": {"id": "p8", "name": "George Terrance Victor Knights", "birth": "1938", "death": "1982", "living": false, "gen": 2, "branch": "p8", "mother": "Eunice S. David", "spouses": [], "children": ["p26", "p27", "p25", "p24"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p9": {"id": "p9", "name": "Robert Knights", "birth": "", "death": "", "living": true, "gen": 2, "branch": "p9", "mother": "Eunice S. David", "spouses": ["Jeanette Duff", "Veronica"], "children": ["p19", "p20", "p49", "p176"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p10": {"id": "p10", "name": "Percy Allan Knights", "birth": "August 28", "death": "", "living": true, "gen": 2, "branch": "p10", "mother": "Eunice S. David", "spouses": ["Meglan"], "children": ["p21", "p22", "p23"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p11": {"id": "p11", "name": "Patrick Knights", "birth": "", "death": "", "living": true, "gen": 2, "branch": "p11", "mother": "Eunice S. David", "spouses": [], "children": [], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p12": {"id": "p12", "name": "Shawn Beverly", "birth": "", "death": "", "living": true, "gen": 2, "branch": "p12", "mother": "Eunice S. David", "spouses": [], "children": ["p29", "p30"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p13": {"id": "p13", "name": "Desiree Knights", "birth": "8 AUG 1948", "death": "21 JAN 2012", "living": false, "gen": 2, "branch": "p13", "mother": "Eunice S. David", "spouses": [], "children": ["p31"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p14": {"id": "p14", "name": "Conrad (johnny) Knights", "birth": "6 OCT 1955", "death": "21 AUG 2023", "living": false, "gen": 2, "branch": "p14", "mother": "Eunice S. David", "spouses": [], "children": ["p32", "p33", "p42", "p41", "p40"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p15": {"id": "p15", "name": "Charles Knights", "birth": "", "death": "", "living": true, "gen": 2, "branch": "p15", "mother": "Eunice S. David", "spouses": ["Margaret Vieira", "Unknown"], "children": ["p34", "p37", "p36", "p38", "p39", "p35", "p56", "p57"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p16": {"id": "p16", "name": "Carl D Knights", "birth": "", "death": "", "living": true, "gen": 2, "branch": "p16", "mother": "Eunice S. David", "spouses": ["Anita"], "children": ["p106", "p107", "p108", "p109", "p110"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p17": {"id": "p17", "name": "William Arnold (Wootee) Knights", "birth": "1958", "death": "1973", "living": false, "gen": 2, "branch": "p17", "mother": "Eunice S. David", "spouses": [], "children": [], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p18": {"id": "p18", "name": "May (Nurse) Knights", "birth": "18 APR 1942", "death": "26 NOV 2019", "living": false, "gen": 2, "branch": "p18", "mother": "Eunice S. David", "spouses": ["Wilbert Nurse"], "children": ["p43", "p44", "p45", "p46", "p47", "p48"], "parents": ["p0", "p1"], "bio": "", "photo": ""}, "p19": {"id": "p19", "name": "Kwame Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p9", "mother": "", "spouses": ["Joy Beeler"], "children": ["p137"], "parents": ["p9", "p142"], "bio": "", "photo": ""}, "p20": {"id": "p20", "name": "Shaundel Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p9", "p142"], "bio": "", "photo": ""}, "p21": {"id": "p21", "name": "Jayci", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p10", "mother": "", "spouses": ["Trevi Tee"], "children": ["p160"], "parents": ["p205", "p10"], "bio": "", "photo": ""}, "p22": {"id": "p22", "name": "Jayson Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p10", "mother": "", "spouses": ["Lourdes Walters"], "children": ["p145", "p159"], "parents": ["p205", "p10"], "bio": "", "photo": ""}, "p23": {"id": "p23", "name": "Julian Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p10", "mother": "", "spouses": ["Ayana Thompson"], "children": ["p202", "p204", "p203"], "parents": ["p205", "p10"], "bio": "", "photo": ""}, "p24": {"id": "p24", "name": "Amar Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p8"], "bio": "", "photo": ""}, "p25": {"id": "p25", "name": "Niesha Knights", "birth": "September", "death": "", "living": true, "gen": 3, "branch": "p8", "mother": "", "spouses": [], "children": ["p81", "p82", "p83"], "parents": ["p8"], "bio": "", "photo": ""}, "p26": {"id": "p26", "name": "Grace Angela Joseph", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p8", "mother": "", "spouses": [], "children": ["p72", "p73", "p74", "p75"], "parents": ["p8"], "bio": "", "photo": ""}, "p27": {"id": "p27", "name": "George Aldon Terrence Knights", "birth": "November 22", "death": "", "living": true, "gen": 3, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p8"], "bio": "", "photo": ""}, "p28": {"id": "p28", "name": "John Allan Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p7", "mother": "", "spouses": [], "children": ["p62", "p63", "p64", "p71", "p77", "p78"], "parents": ["p7"], "bio": "", "photo": ""}, "p29": {"id": "p29", "name": "Elizabeth Purnell", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p12", "mother": "", "spouses": [], "children": [], "parents": ["p12"], "bio": "", "photo": ""}, "p30": {"id": "p30", "name": "Stephanie Purnell", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p12", "mother": "", "spouses": [], "children": [], "parents": ["p12"], "bio": "", "photo": ""}, "p31": {"id": "p31", "name": "Ade Innis", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p13", "mother": "", "spouses": [], "children": ["p65"], "parents": ["p13"], "bio": "", "photo": ""}, "p32": {"id": "p32", "name": "Adrian Knights", "birth": "December", "death": "", "living": true, "gen": 3, "branch": "p14", "mother": "", "spouses": [], "children": ["p66", "p157"], "parents": ["p14"], "bio": "", "photo": ""}, "p33": {"id": "p33", "name": "Hansel (Terrence) Knights", "birth": "May", "death": "", "living": true, "gen": 3, "branch": "p14", "mother": "", "spouses": [], "children": ["p67"], "parents": ["p14"], "bio": "", "photo": ""}, "p34": {"id": "p34", "name": "Trent Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p15", "mother": "", "spouses": [], "children": ["p118", "p119", "p120"], "parents": ["p146", "p15"], "bio": "", "photo": ""}, "p35": {"id": "p35", "name": "Kirk Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p15", "mother": "", "spouses": ["Conalita"], "children": ["p60", "p156", "p155", "p61"], "parents": ["p146", "p15"], "bio": "", "photo": ""}, "p36": {"id": "p36", "name": "Ken Knights", "birth": "December 1", "death": "", "living": true, "gen": 3, "branch": "p15", "mother": "", "spouses": ["Milline"], "children": ["p116", "p117", "p151", "p174"], "parents": ["p146", "p15"], "bio": "", "photo": ""}, "p37": {"id": "p37", "name": "Clint Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p15", "mother": "", "spouses": [], "children": ["p121", "p122", "p123", "p124", "p125"], "parents": ["p146", "p15"], "bio": "", "photo": ""}, "p38": {"id": "p38", "name": "Colin Knights", "birth": "February 20", "death": "", "living": true, "gen": 3, "branch": "p15", "mother": "", "spouses": ["Liz"], "children": ["p111", "p153", "p149"], "parents": ["p146", "p15"], "bio": "", "photo": ""}, "p39": {"id": "p39", "name": "Renee", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p15", "mother": "", "spouses": [], "children": ["p147"], "parents": ["p146", "p15"], "bio": "", "photo": ""}, "p40": {"id": "p40", "name": "Gordon Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p14", "mother": "", "spouses": [], "children": [], "parents": ["p14"], "bio": "", "photo": ""}, "p41": {"id": "p41", "name": "Lauren Knights", "birth": "September", "death": "", "living": true, "gen": 3, "branch": "p14", "mother": "", "spouses": [], "children": [], "parents": ["p14"], "bio": "", "photo": ""}, "p42": {"id": "p42", "name": "Carmen", "birth": "December", "death": "", "living": true, "gen": 3, "branch": "p14", "mother": "", "spouses": [], "children": [], "parents": ["p14"], "bio": "", "photo": ""}, "p43": {"id": "p43", "name": "Wesly Nurse", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p18", "mother": "", "spouses": ["Judith"], "children": ["p79", "p80"], "parents": ["p18", "p165"], "bio": "", "photo": ""}, "p44": {"id": "p44", "name": "Warren Nurse", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p18", "mother": "", "spouses": ["Tania"], "children": ["p70", "p76", "p101"], "parents": ["p18", "p165"], "bio": "", "photo": ""}, "p45": {"id": "p45", "name": "Wayne Nurse", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p18", "mother": "", "spouses": ["Karen"], "children": ["p84", "p85"], "parents": ["p18", "p165"], "bio": "", "photo": ""}, "p46": {"id": "p46", "name": "Triceia Nurse", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p18", "mother": "", "spouses": [], "children": ["p68", "p69"], "parents": ["p18", "p165"], "bio": "", "photo": ""}, "p47": {"id": "p47", "name": "Winona (Mandy) Nurse", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p18", "mother": "", "spouses": ["Kerry"], "children": ["p220", "p221", "p222"], "parents": ["p18", "p165"], "bio": "", "photo": ""}, "p48": {"id": "p48", "name": "Wrenly Nurse", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p18", "mother": "", "spouses": ["Roslyn Nurse"], "children": ["p223", "p225", "p226"], "parents": ["p18", "p165"], "bio": "", "photo": ""}, "p49": {"id": "p49", "name": "Robert Griffith", "birth": "January 8", "death": "", "living": true, "gen": 3, "branch": "p9", "mother": "", "spouses": [], "children": ["p132", "p133", "p134", "p135", "p136"], "parents": ["p9", "p175"], "bio": "", "photo": ""}, "p50": {"id": "p50", "name": "Eamonn Knights", "birth": "February 1", "death": "", "living": true, "gen": 3, "branch": "p2", "mother": "", "spouses": [], "children": ["p112"], "parents": ["p2"], "bio": "", "photo": ""}, "p51": {"id": "p51", "name": "Hubert Anthony (Tony) Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p2", "mother": "", "spouses": [], "children": ["p113", "p114", "p115"], "parents": ["p2"], "bio": "", "photo": ""}, "p52": {"id": "p52", "name": "Howard Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p3", "mother": "", "spouses": [], "children": ["p86", "p87", "p88"], "parents": ["p3"], "bio": "", "photo": ""}, "p53": {"id": "p53", "name": "Hilbert Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p3", "mother": "", "spouses": [], "children": ["p102", "p103", "p104", "p105"], "parents": ["p3"], "bio": "", "photo": ""}, "p54": {"id": "p54", "name": "Holbert Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p3", "mother": "", "spouses": [], "children": ["p89", "p90", "p91"], "parents": ["p3"], "bio": "", "photo": ""}, "p55": {"id": "p55", "name": "Neil Knights", "birth": "April 16", "death": "", "living": true, "gen": 3, "branch": "p3", "mother": "", "spouses": [], "children": ["p96", "p97", "p98", "p99"], "parents": ["p3"], "bio": "", "photo": ""}, "p56": {"id": "p56", "name": "Troy Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p15", "mother": "", "spouses": ["Unknown"], "children": ["p169", "p170", "p167"], "parents": ["p200", "p15"], "bio": "", "photo": ""}, "p57": {"id": "p57", "name": "Carloyn Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p15", "mother": "", "spouses": ["Unknown"], "children": ["p171", "p173"], "parents": ["p200", "p15"], "bio": "", "photo": ""}, "p58": {"id": "p58", "name": "Hue (Sam) Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p3", "mother": "", "spouses": [], "children": ["p100"], "parents": ["p3"], "bio": "", "photo": ""}, "p59": {"id": "p59", "name": "Hilarie Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p3"], "bio": "", "photo": ""}, "p60": {"id": "p60", "name": "Tevin Knights", "birth": "September", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p35"], "bio": "", "photo": ""}, "p61": {"id": "p61", "name": "Kirk Knights", "birth": "January", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p35", "p154"], "bio": "", "photo": ""}, "p62": {"id": "p62", "name": "Toshia Mc Donald", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p7", "mother": "", "spouses": [], "children": [], "parents": ["p28"], "bio": "", "photo": ""}, "p63": {"id": "p63", "name": "La Toya Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p7", "mother": "", "spouses": [], "children": [], "parents": ["p28"], "bio": "", "photo": ""}, "p64": {"id": "p64", "name": "La Shawn Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p7", "mother": "", "spouses": [], "children": [], "parents": ["p28"], "bio": "", "photo": ""}, "p65": {"id": "p65", "name": "Xavier Innis", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p13", "mother": "", "spouses": ["Unknown"], "children": ["p206"], "parents": ["p31"], "bio": "", "photo": ""}, "p66": {"id": "p66", "name": "Rhianna Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p14", "mother": "", "spouses": [], "children": [], "parents": ["p32"], "bio": "", "photo": ""}, "p67": {"id": "p67", "name": "Conell Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p14", "mother": "", "spouses": [], "children": [], "parents": ["p33"], "bio": "", "photo": ""}, "p68": {"id": "p68", "name": "Javon Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p46"], "bio": "", "photo": ""}, "p69": {"id": "p69", "name": "Alicia Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p46"], "bio": "", "photo": ""}, "p70": {"id": "p70", "name": "Omari Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p44", "p164"], "bio": "", "photo": ""}, "p71": {"id": "p71", "name": "Akeen Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p7", "mother": "", "spouses": [], "children": [], "parents": ["p28"], "bio": "", "photo": ""}, "p72": {"id": "p72", "name": "Alanna Fanfair", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p26"], "bio": "", "photo": ""}, "p73": {"id": "p73", "name": "Sabrina Ross", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p8", "mother": "", "spouses": [], "children": ["p126", "p127"], "parents": ["p26"], "bio": "", "photo": ""}, "p74": {"id": "p74", "name": "Kerry Joseph", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p26"], "bio": "", "photo": ""}, "p75": {"id": "p75", "name": "Seon Joseph", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p26"], "bio": "", "photo": ""}, "p76": {"id": "p76", "name": "Deisha Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p44", "p164"], "bio": "", "photo": ""}, "p77": {"id": "p77", "name": "Nicola Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p7", "mother": "", "spouses": [], "children": [], "parents": ["p28"], "bio": "", "photo": ""}, "p78": {"id": "p78", "name": "Myesha Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p7", "mother": "", "spouses": [], "children": [], "parents": ["p28"], "bio": "", "photo": ""}, "p79": {"id": "p79", "name": "Mackenzie Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p43", "p162"], "bio": "", "photo": ""}, "p80": {"id": "p80", "name": "Madison Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p43", "p162"], "bio": "", "photo": ""}, "p81": {"id": "p81", "name": "Deyancie Darrell Coleman", "birth": "May", "death": "", "living": true, "gen": 4, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p25"], "bio": "", "photo": ""}, "p82": {"id": "p82", "name": "Ayanna Jordyn", "birth": "February", "death": "", "living": true, "gen": 4, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p25"], "bio": "", "photo": ""}, "p83": {"id": "p83", "name": "Jabari Ahmed Bell", "birth": "August", "death": "", "living": true, "gen": 4, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p25"], "bio": "", "photo": ""}, "p84": {"id": "p84", "name": "Naiya Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p163", "p45"], "bio": "", "photo": ""}, "p85": {"id": "p85", "name": "Nasheni Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p163", "p45"], "bio": "", "photo": ""}, "p86": {"id": "p86", "name": "Tasia Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p52"], "bio": "", "photo": ""}, "p87": {"id": "p87", "name": "NyAshia Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p52"], "bio": "", "photo": ""}, "p88": {"id": "p88", "name": "Keziah Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p52"], "bio": "", "photo": ""}, "p89": {"id": "p89", "name": "Nifellie Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p54"], "bio": "", "photo": ""}, "p90": {"id": "p90", "name": "Jaden Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p54"], "bio": "", "photo": ""}, "p91": {"id": "p91", "name": "Sarah Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p54"], "bio": "", "photo": ""}, "p92": {"id": "p92", "name": "Horace Knights", "birth": "March", "death": "", "living": true, "gen": 3, "branch": "p3", "mother": "", "spouses": [], "children": ["p93", "p94", "p95"], "parents": ["p3"], "bio": "", "photo": ""}, "p93": {"id": "p93", "name": "Horace Jr Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p92"], "bio": "", "photo": ""}, "p94": {"id": "p94", "name": "Hilarie Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p92"], "bio": "", "photo": ""}, "p95": {"id": "p95", "name": "Christian Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p92"], "bio": "", "photo": ""}, "p96": {"id": "p96", "name": "Natasha Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p55"], "bio": "", "photo": ""}, "p97": {"id": "p97", "name": "Kevin- Marks Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p55"], "bio": "", "photo": ""}, "p98": {"id": "p98", "name": "Nigel Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p55"], "bio": "", "photo": ""}, "p99": {"id": "p99", "name": "Nishaad Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p55"], "bio": "", "photo": ""}, "p100": {"id": "p100", "name": "Ryan -Danty Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p58"], "bio": "", "photo": ""}, "p101": {"id": "p101", "name": "Davea Nurse", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p44", "p164"], "bio": "", "photo": ""}, "p102": {"id": "p102", "name": "Creos Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p53"], "bio": "", "photo": ""}, "p103": {"id": "p103", "name": "Jahmayah Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p53"], "bio": "", "photo": ""}, "p104": {"id": "p104", "name": "Damal Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p53"], "bio": "", "photo": ""}, "p105": {"id": "p105", "name": "Zahra Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p3", "mother": "", "spouses": [], "children": [], "parents": ["p53"], "bio": "", "photo": ""}, "p106": {"id": "p106", "name": "Carl Jr Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p16", "mother": "", "spouses": [], "children": [], "parents": ["p16", "p187"], "bio": "", "photo": ""}, "p107": {"id": "p107", "name": "William Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p16", "mother": "", "spouses": [], "children": [], "parents": ["p16", "p187"], "bio": "", "photo": ""}, "p108": {"id": "p108", "name": "Kevin Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p16", "mother": "", "spouses": [], "children": [], "parents": ["p16", "p187"], "bio": "", "photo": ""}, "p109": {"id": "p109", "name": "Christina Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p16", "mother": "", "spouses": [], "children": [], "parents": ["p16", "p187"], "bio": "", "photo": ""}, "p110": {"id": "p110", "name": "Ashley Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p16", "mother": "", "spouses": [], "children": [], "parents": ["p16", "p187"], "bio": "", "photo": ""}, "p111": {"id": "p111", "name": "Ashley Knights", "birth": "June", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p38"], "bio": "", "photo": ""}, "p112": {"id": "p112", "name": "Eamonn Joshua Knights", "birth": "December", "death": "", "living": true, "gen": 4, "branch": "p2", "mother": "", "spouses": [], "children": [], "parents": ["p50"], "bio": "", "photo": ""}, "p113": {"id": "p113", "name": "Antonio Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p2", "mother": "", "spouses": [], "children": [], "parents": ["p51"], "bio": "", "photo": ""}, "p114": {"id": "p114", "name": "Alexander Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p2", "mother": "", "spouses": [], "children": [], "parents": ["p51"], "bio": "", "photo": ""}, "p115": {"id": "p115", "name": "Anthony Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p2", "mother": "", "spouses": [], "children": [], "parents": ["p51"], "bio": "", "photo": ""}, "p116": {"id": "p116", "name": "Kandacy Knights", "birth": "May", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": ["p148"], "parents": ["p36"], "bio": "", "photo": ""}, "p117": {"id": "p117", "name": "Ashford Knights", "birth": "November", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p36"], "bio": "", "photo": ""}, "p118": {"id": "p118", "name": "Shenice", "birth": "July", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p34"], "bio": "", "photo": ""}, "p119": {"id": "p119", "name": "Ieasha Knights", "birth": "June", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p34"], "bio": "", "photo": ""}, "p120": {"id": "p120", "name": "Trent Jr Knights", "birth": "November", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p34"], "bio": "", "photo": ""}, "p121": {"id": "p121", "name": "Brandon Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p37"], "bio": "", "photo": ""}, "p122": {"id": "p122", "name": "Eric Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p37"], "bio": "", "photo": ""}, "p123": {"id": "p123", "name": "Alana Knights", "birth": "November", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p37"], "bio": "", "photo": ""}, "p124": {"id": "p124", "name": "Eathan Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p37"], "bio": "", "photo": ""}, "p125": {"id": "p125", "name": "Cameron Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p37"], "bio": "", "photo": ""}, "p126": {"id": "p126", "name": "Ross", "birth": "", "death": "", "living": true, "gen": 5, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p73"], "bio": "", "photo": ""}, "p127": {"id": "p127", "name": "Ross", "birth": "", "death": "", "living": true, "gen": 5, "branch": "p8", "mother": "", "spouses": [], "children": [], "parents": ["p73"], "bio": "", "photo": ""}, "p128": {"id": "p128", "name": "Jacqueline", "birth": "April 6", "death": "", "living": true, "gen": 3, "branch": "p4", "mother": "", "spouses": ["Unknown"], "children": ["p188"], "parents": ["p4"], "bio": "", "photo": ""}, "p129": {"id": "p129", "name": "Carlisle Knights", "birth": "November 16", "death": "", "living": true, "gen": 3, "branch": "p4", "mother": "", "spouses": [], "children": [], "parents": ["p4"], "bio": "", "photo": ""}, "p130": {"id": "p130", "name": "Melvin Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p4", "mother": "", "spouses": ["Unknown"], "children": [], "parents": ["p4"], "bio": "", "photo": ""}, "p131": {"id": "p131", "name": "Jennifer Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p4", "mother": "", "spouses": ["Unknown"], "children": ["p208", "p210"], "parents": ["p4"], "bio": "", "photo": ""}, "p132": {"id": "p132", "name": "Robin lashuana Griffith", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": ["James"], "children": ["p228", "p229", "p230"], "parents": ["p49"], "bio": "", "photo": ""}, "p133": {"id": "p133", "name": "Daniel Griffith", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p49"], "bio": "", "photo": ""}, "p134": {"id": "p134", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p49"], "bio": "", "photo": ""}, "p135": {"id": "p135", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p49"], "bio": "", "photo": ""}, "p136": {"id": "p136", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p49"], "bio": "", "photo": ""}, "p137": {"id": "p137", "name": "Evan  Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p143", "p19"], "bio": "", "photo": ""}, "p138": {"id": "p138", "name": "Juliet Knights", "birth": "June 28", "death": "", "living": true, "gen": 3, "branch": "p4", "mother": "", "spouses": [], "children": [], "parents": ["p4"], "bio": "", "photo": ""}, "p139": {"id": "p139", "name": "Glendon Knights", "birth": "10 OCT 1957", "death": "5 AUG 2018", "living": false, "gen": 3, "branch": "p4", "mother": "", "spouses": [], "children": [], "parents": ["p4"], "bio": "", "photo": ""}, "p140": {"id": "p140", "name": "Angela Rodrigues", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Hilbert Augusta Knights"], "children": ["p2"], "parents": [], "bio": "", "photo": ""}, "p141": {"id": "p141", "name": "Joy", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": [], "children": [], "parents": [], "bio": "", "photo": ""}, "p142": {"id": "p142", "name": "Jeanette Duff", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Robert Knights"], "children": ["p19", "p20"], "parents": [], "bio": "", "photo": ""}, "p143": {"id": "p143", "name": "Joy Beeler", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Kwame Knights"], "children": ["p137"], "parents": [], "bio": "", "photo": ""}, "p144": {"id": "p144", "name": "Flo Mom", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Hilbert Augusta Knights"], "children": ["p5"], "parents": [], "bio": "", "photo": ""}, "p145": {"id": "p145", "name": "Jaylen Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p10", "mother": "", "spouses": [], "children": [], "parents": ["p22", "p158"], "bio": "", "photo": ""}, "p146": {"id": "p146", "name": "Margaret Vieira", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Charles Knights"], "children": ["p34", "p37", "p36", "p38", "p39", "p35"], "parents": ["p184", "p183"], "bio": "", "photo": ""}, "p147": {"id": "p147", "name": "Riley Carter", "birth": "January", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p39"], "bio": "", "photo": ""}, "p148": {"id": "p148", "name": "Kairo", "birth": "December", "death": "", "living": true, "gen": 5, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p116"], "bio": "", "photo": ""}, "p149": {"id": "p149", "name": "Isabel Christina Knights", "birth": "February", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p38", "p150"], "bio": "", "photo": ""}, "p150": {"id": "p150", "name": "Liz", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Colin Knights"], "children": ["p153", "p149"], "parents": [], "bio": "", "photo": ""}, "p151": {"id": "p151", "name": "Kaiden Knights", "birth": "December", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p152", "p36"], "bio": "", "photo": ""}, "p152": {"id": "p152", "name": "Milline", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Ken Knights"], "children": ["p151", "p174"], "parents": [], "bio": "", "photo": ""}, "p153": {"id": "p153", "name": "Michael Knights", "birth": "October", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p38", "p150"], "bio": "", "photo": ""}, "p154": {"id": "p154", "name": "Conalita", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Kirk Knights"], "children": ["p156", "p155", "p61"], "parents": [], "bio": "", "photo": ""}, "p155": {"id": "p155", "name": "Kashanna Knights", "birth": "April", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p35", "p154"], "bio": "", "photo": ""}, "p156": {"id": "p156", "name": "Cillisha Knights", "birth": "February", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p35", "p154"], "bio": "", "photo": ""}, "p157": {"id": "p157", "name": "Rhyelle Knights", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p14", "mother": "", "spouses": [], "children": [], "parents": ["p32"], "bio": "", "photo": ""}, "p158": {"id": "p158", "name": "Lourdes Walters", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Jayson Knights"], "children": ["p145", "p159"], "parents": [], "bio": "", "photo": ""}, "p159": {"id": "p159", "name": "Jordyn knights", "birth": "February 11", "death": "", "living": true, "gen": 4, "branch": "p10", "mother": "", "spouses": [], "children": [], "parents": ["p22", "p158"], "bio": "", "photo": ""}, "p160": {"id": "p160", "name": "Ryan", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p10", "mother": "", "spouses": [], "children": [], "parents": ["p161", "p21"], "bio": "", "photo": ""}, "p161": {"id": "p161", "name": "Trevi Tee", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Jayci"], "children": ["p160"], "parents": [], "bio": "", "photo": ""}, "p162": {"id": "p162", "name": "Judith", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Wesly Nurse"], "children": ["p79", "p80"], "parents": [], "bio": "", "photo": ""}, "p163": {"id": "p163", "name": "Karen", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Wayne Nurse"], "children": ["p84", "p85"], "parents": [], "bio": "", "photo": ""}, "p164": {"id": "p164", "name": "Tania", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Warren Nurse"], "children": ["p70", "p76", "p101"], "parents": [], "bio": "", "photo": ""}, "p165": {"id": "p165", "name": "Wilbert Nurse", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["May (Nurse) Knights"], "children": ["p43", "p44", "p45", "p46", "p47", "p48"], "parents": [], "bio": "", "photo": ""}, "p166": {"id": "p166", "name": "Kerry", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Winona (Mandy) Nurse"], "children": ["p220", "p221", "p222"], "parents": [], "bio": "", "photo": ""}, "p167": {"id": "p167", "name": "Breanna Nicola Knights", "birth": "May 18", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p168", "p56"], "bio": "", "photo": ""}, "p168": {"id": "p168", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Troy Knights"], "children": ["p169", "p170", "p167"], "parents": [], "bio": "", "photo": ""}, "p169": {"id": "p169", "name": "Travone Knights", "birth": "January 13", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p168", "p56"], "bio": "", "photo": ""}, "p170": {"id": "p170", "name": "Dillian Knights", "birth": "July 19", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p168", "p56"], "bio": "", "photo": ""}, "p171": {"id": "p171", "name": "Chris Knights", "birth": "February 9", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p172", "p57"], "bio": "", "photo": ""}, "p172": {"id": "p172", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Carloyn Knights"], "children": ["p171", "p173"], "parents": [], "bio": "", "photo": ""}, "p173": {"id": "p173", "name": "Tatiana", "birth": "August 22", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p172", "p57"], "bio": "", "photo": ""}, "p174": {"id": "p174", "name": "Kairo Campbell-Knight", "birth": "December 15", "death": "", "living": true, "gen": 4, "branch": "p15", "mother": "", "spouses": [], "children": [], "parents": ["p152", "p36"], "bio": "", "photo": ""}, "p175": {"id": "p175", "name": "Veronica", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Robert Knights"], "children": ["p49", "p176"], "parents": [], "bio": "", "photo": ""}, "p176": {"id": "p176", "name": "Clifford Griffith", "birth": "July 23", "death": "", "living": true, "gen": 3, "branch": "p9", "mother": "", "spouses": ["Unknown"], "children": ["p177", "p179", "p180", "p181"], "parents": ["p9", "p175"], "bio": "", "photo": ""}, "p177": {"id": "p177", "name": "Marvin Wray", "birth": "12 APR 1984", "death": "2012", "living": false, "gen": 4, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p176", "p178"], "bio": "", "photo": ""}, "p178": {"id": "p178", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Clifford Griffith"], "children": ["p177", "p179", "p180", "p181"], "parents": [], "bio": "", "photo": ""}, "p179": {"id": "p179", "name": "Kievin Edwards", "birth": "March 19", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p176", "p178"], "bio": "", "photo": ""}, "p180": {"id": "p180", "name": "Sherlock Griffith", "birth": "December 7", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": ["Kizzy"], "children": ["p215", "p217"], "parents": ["p176", "p178"], "bio": "", "photo": ""}, "p181": {"id": "p181", "name": "Kevin Griffith", "birth": "January 9", "death": "", "living": true, "gen": 4, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p176", "p178"], "bio": "", "photo": ""}, "p182": {"id": "p182", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Melvin Knights"], "children": [], "parents": [], "bio": "", "photo": ""}, "p183": {"id": "p183", "name": "Celestine Badley", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Stanley Vieira"], "children": [], "parents": [], "bio": "", "photo": ""}, "p184": {"id": "p184", "name": "Stanley Vieira", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Celestine Badley"], "children": [], "parents": ["p186", "p185"], "bio": "", "photo": ""}, "p185": {"id": "p185", "name": "John Vieira", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Rita"], "children": [], "parents": [], "bio": "", "photo": ""}, "p186": {"id": "p186", "name": "Rita", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["John Vieira"], "children": [], "parents": [], "bio": "", "photo": ""}, "p187": {"id": "p187", "name": "Anita", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Carl D Knights"], "children": ["p106", "p107", "p108", "p109", "p110"], "parents": [], "bio": "", "photo": ""}, "p188": {"id": "p188", "name": "J", "birth": "September 30", "death": "", "living": true, "gen": 4, "branch": "p4", "mother": "", "spouses": [], "children": [], "parents": ["p128", "p189"], "bio": "", "photo": ""}, "p189": {"id": "p189", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Jacqueline"], "children": ["p188"], "parents": [], "bio": "", "photo": ""}, "p190": {"id": "p190", "name": "Orlanda Knights", "birth": "", "death": "", "living": true, "gen": 3, "branch": "p4", "mother": "", "spouses": [], "children": [], "parents": ["p4"], "bio": "", "photo": ""}, "p191": {"id": "p191", "name": "Christopher Knights", "birth": "May", "death": "", "living": true, "gen": 3, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p6", "p192"], "bio": "", "photo": ""}, "p192": {"id": "p192", "name": "Shamin", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Horace Knights"], "children": ["p198", "p196", "p197", "p193", "p191", "p195", "p194"], "parents": [], "bio": "", "photo": ""}, "p193": {"id": "p193", "name": "Shamika Knights", "birth": "January", "death": "", "living": true, "gen": 3, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p6", "p192"], "bio": "", "photo": ""}, "p194": {"id": "p194", "name": "Divine Knights", "birth": "August", "death": "", "living": true, "gen": 3, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p6", "p192"], "bio": "", "photo": ""}, "p195": {"id": "p195", "name": "Rahana Knights", "birth": "November", "death": "", "living": true, "gen": 3, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p6", "p192"], "bio": "", "photo": ""}, "p196": {"id": "p196", "name": "Emanuel Knights", "birth": "December", "death": "", "living": true, "gen": 3, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p6", "p192"], "bio": "", "photo": ""}, "p197": {"id": "p197", "name": "Samuel Knights", "birth": "December", "death": "", "living": true, "gen": 3, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p6", "p192"], "bio": "", "photo": ""}, "p198": {"id": "p198", "name": "Latoya Knights", "birth": "January", "death": "", "living": true, "gen": 3, "branch": "p6", "mother": "", "spouses": ["Unknown"], "children": ["p211", "p213", "p214"], "parents": ["p6", "p192"], "bio": "", "photo": ""}, "p199": {"id": "p199", "name": "Gwendoline Brathwaite", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Hilbert Augusta Knights"], "children": ["p6"], "parents": [], "bio": "", "photo": ""}, "p200": {"id": "p200", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Charles Knights"], "children": ["p56", "p57"], "parents": [], "bio": "", "photo": ""}, "p201": {"id": "p201", "name": "Ayana Thompson", "birth": "March 11", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Julian Knights"], "children": ["p202", "p204", "p203"], "parents": [], "bio": "", "photo": ""}, "p202": {"id": "p202", "name": "Andrew Knights", "birth": "October 11", "death": "", "living": true, "gen": 4, "branch": "p10", "mother": "", "spouses": [], "children": [], "parents": ["p23", "p201"], "bio": "", "photo": ""}, "p203": {"id": "p203", "name": "Addison Thompson", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p10", "mother": "", "spouses": [], "children": [], "parents": ["p23", "p201"], "bio": "", "photo": ""}, "p204": {"id": "p204", "name": "Arya Knights", "birth": "February", "death": "", "living": true, "gen": 4, "branch": "p10", "mother": "", "spouses": [], "children": [], "parents": ["p23", "p201"], "bio": "", "photo": ""}, "p205": {"id": "p205", "name": "Meglan", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Percy Allan Knights"], "children": ["p21", "p22", "p23"], "parents": [], "bio": "", "photo": ""}, "p206": {"id": "p206", "name": "Unknown Innis", "birth": "", "death": "", "living": true, "gen": 5, "branch": "p13", "mother": "", "spouses": [], "children": [], "parents": ["p207", "p65"], "bio": "", "photo": ""}, "p207": {"id": "p207", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Xavier Innis"], "children": ["p206"], "parents": [], "bio": "", "photo": ""}, "p208": {"id": "p208", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p4", "mother": "", "spouses": [], "children": [], "parents": ["p209", "p131"], "bio": "", "photo": ""}, "p209": {"id": "p209", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Jennifer Knights"], "children": ["p208", "p210"], "parents": [], "bio": "", "photo": ""}, "p210": {"id": "p210", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p4", "mother": "", "spouses": [], "children": [], "parents": ["p209", "p131"], "bio": "", "photo": ""}, "p211": {"id": "p211", "name": "Charisma", "birth": "January 1", "death": "", "living": true, "gen": 4, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p198", "p212"], "bio": "", "photo": ""}, "p212": {"id": "p212", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Latoya Knights"], "children": ["p211", "p213", "p214"], "parents": [], "bio": "", "photo": ""}, "p213": {"id": "p213", "name": "Clarissa", "birth": "May 11", "death": "", "living": true, "gen": 4, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p198", "p212"], "bio": "", "photo": ""}, "p214": {"id": "p214", "name": "Tristan", "birth": "September 5", "death": "", "living": true, "gen": 4, "branch": "p6", "mother": "", "spouses": [], "children": [], "parents": ["p198", "p212"], "bio": "", "photo": ""}, "p215": {"id": "p215", "name": "Zion Griffith", "birth": "", "death": "", "living": true, "gen": 5, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p216", "p180"], "bio": "", "photo": ""}, "p216": {"id": "p216", "name": "Kizzy", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Sherlock Griffith"], "children": ["p215", "p217"], "parents": [], "bio": "", "photo": ""}, "p217": {"id": "p217", "name": "Ezekiel Griffith", "birth": "", "death": "", "living": true, "gen": 5, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p216", "p180"], "bio": "", "photo": ""}, "p218": {"id": "p218", "name": "Hilbert Mom", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Hilbert Augusta Knights"], "children": ["p3"], "parents": [], "bio": "", "photo": ""}, "p219": {"id": "p219", "name": "Hilda Mom", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Hilbert Augusta Knights"], "children": ["p4"], "parents": [], "bio": "", "photo": ""}, "p220": {"id": "p220", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p47", "p166"], "bio": "", "photo": ""}, "p221": {"id": "p221", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p47", "p166"], "bio": "", "photo": ""}, "p222": {"id": "p222", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p47", "p166"], "bio": "", "photo": ""}, "p223": {"id": "p223", "name": "Raelyn Nurse", "birth": "December 21", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p48", "p224"], "bio": "", "photo": ""}, "p224": {"id": "p224", "name": "Roslyn", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": ["Wrenly Nurse"], "children": ["p223", "p225", "p226"], "parents": [], "bio": "", "photo": ""}, "p225": {"id": "p225", "name": "Riley Nurse", "birth": "March 9", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p48", "p224"], "bio": "", "photo": ""}, "p226": {"id": "p226", "name": "Ryland Nurse", "birth": "September 2", "death": "", "living": true, "gen": 4, "branch": "p18", "mother": "", "spouses": [], "children": [], "parents": ["p48", "p224"], "bio": "", "photo": ""}, "p227": {"id": "p227", "name": "Unknown", "birth": "", "death": "", "living": true, "gen": null, "branch": "", "mother": "", "spouses": [], "children": [], "parents": [], "bio": "", "photo": ""}, "p228": {"id": "p228", "name": "Jemar", "birth": "", "death": "", "living": true, "gen": 5, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p132"], "bio": "", "photo": ""}, "p229": {"id": "p229", "name": "Jashaun", "birth": "", "death": "", "living": true, "gen": 5, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p132"], "bio": "", "photo": ""}, "p230": {"id": "p230", "name": "Jehlani", "birth": "", "death": "", "living": true, "gen": 5, "branch": "p9", "mother": "", "spouses": [], "children": [], "parents": ["p132"], "bio": "", "photo": ""}}, "stats": {"total": 231, "gen2": 17, "gen3": 62, "gen4": 101, "gen5": 9}};
+const P = DATA.people;
+document.getElementById('s-total').textContent = DATA.stats.total;
+document.getElementById('s-branches').textContent = DATA.founders.length;
+
+function initials(name){
+  const parts=name.replace(/\[.*?\]/g,'').trim().split(/\s+/).filter(Boolean);
+  if(!parts.length||name==='Unknown')return '?';
+  return (parts[0][0]+(parts.length>1?parts[parts.length-1][0]:'')).toUpperCase();
+}
+function meta(p){
+  const bits=[];
+  if(p.birth) bits.push(p.birth + (p.death?(' \u2013 '+p.death):''));
+  else if(p.death) bits.push('d. '+p.death);
+  return bits.join('');
+}
+
+// group founders by mother
+const moms={};
+DATA.founders.forEach(fid=>{
+  const m=P[fid].mother||'Mother not recorded';
+  (moms[m]=moms[m]||[]).push(fid);
+});
+
+function descCount(id){
+  let c=0;const seen=new Set();
+  (function walk(x){P[x].children.forEach(k=>{if(!seen.has(k)){seen.add(k);c++;walk(k);}})})(id);
+  return c;
+}
+
+function nodeHTML(id){
+  const p=P[id];
+  const kids=p.children.filter(k=>P[k]);
+  const hasKids=kids.length>0;
+  const dc = hasKids?descCount(id):0;
+  let h='<div class="node gen'+(p.gen)+'" data-id="'+id+'">';
+  h+='<div class="node-row" onclick="rowClick(event,\''+id+'\')">';
+  h+='<span class="toggle'+(hasKids?'':' empty')+'">&#9654;</span>';
+  h+='<div class="avatar">'+initials(p.name)+'</div>';
+  h+='<div><div class="node-name">'+p.name+'</div>';
+  if(meta(p))h+='<div class="node-meta">'+meta(p)+'</div>';
+  h+='</div>';
+  if(hasKids)h+='<span class="kidcount">'+dc+' descendant'+(dc!==1?'s':'')+'</span>';
+  h+='</div>';
+  if(hasKids){
+    h+='<div class="children">';
+    kids.forEach(k=>h+=nodeHTML(k));
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function renderTree(){
+  let h='';
+  Object.keys(moms).forEach((m,i)=>{
+    h+='<div class="mother-group'+(i===0?' open':'')+'">';
+    h+='<div class="mother-head" onclick="this.parentElement.classList.toggle(\'open\')">';
+    h+='<div><div class="label">Mother</div><h3>'+m+'</h3></div>';
+    h+='<span class="chev">&#9654;</span></div>';
+    h+='<div class="mother-body">';
+    moms[m].forEach(fid=>h+=nodeHTML(fid));
+    h+='</div></div>';
+  });
+  document.getElementById('tree').innerHTML=h;
+}
+
+function rowClick(e,id){
+  const node=e.currentTarget.parentElement;
+  const hasKids=node.querySelector(':scope > .children');
+  // if clicked toggle area, expand; else open profile
+  if(e.target.classList.contains('toggle') && hasKids){
+    node.classList.toggle('open');
+  } else {
+    openModal(id);
+  }
+}
+
+function openModal(id){
+  const p=P[id];
+  const parents=p.parents.filter(x=>P[x]).map(x=>P[x]);
+  const kids=p.children.filter(x=>P[x]).map(x=>P[x]);
+  let h='<div class="modal-top">';
+  h+='<button class="modal-close" onclick="closeModal()">&times;</button>';
+  h+='<div class="big-avatar">'+initials(p.name)+'</div>';
+  h+='<h2>'+p.name+'</h2>';
+  const life=meta(p); if(life)h+='<div class="sub">'+life+'</div>';
+  h+='</div><div class="modal-body">';
+  if(p.gen)h+='<div class="field"><div class="k">Generation</div><div class="v">Generation '+p.gen+'</div></div>';
+  if(p.mother)h+='<div class="field"><div class="k">Mother</div><div class="v">'+p.mother+'</div></div>';
+  if(p.spouses.length)h+='<div class="field"><div class="k">Spouse'+(p.spouses.length>1?'s':'')+'</div><div class="v">'+p.spouses.map(s=>s==='Unknown'?'<i>name needed</i>':s).join(', ')+'</div></div>';
+  if(parents.length)h+='<div class="field"><div class="k">Parents</div><div class="chips">'+parents.map(x=>'<span class="chip" onclick="openModal(\''+x.id+'\')">'+x.name+'</span>').join('')+'</div></div>';
+  if(kids.length)h+='<div class="field"><div class="k">Children ('+kids.length+')</div><div class="chips">'+kids.map(x=>'<span class="chip" onclick="openModal(\''+x.id+'\')">'+x.name+'</span>').join('')+'</div></div>';
+  h+='<div class="field"><div class="k">About</div>';
+  if(p.bio)h+='<div class="v">'+p.bio+'</div>';
+  else h+='<div class="bio-empty">No story yet. Use &ldquo;Share Your Story&rdquo; to add a bio or memory for '+p.name.split(' ')[0]+'.</div>';
+  h+='</div>';
+  h+='</div>';
+  document.getElementById('modal').innerHTML=h;
+  document.getElementById('modal-bg').classList.add('show');
+}
+function closeModal(){document.getElementById('modal-bg').classList.remove('show');}
+
+// demo announcements
+const NEWS=[
+  {icon:'\uD83C\uDF93',bg:'#e3eef0',type:'Graduation',name:'A milestone',when:'Sample announcement',text:'This is where a family member&rsquo;s graduation, new job, or achievement would appear for everyone to celebrate.'},
+  {icon:'\uD83D\uDC8D',bg:'#f0e6e0',type:'Wedding',name:'A celebration',when:'Sample announcement',text:'Weddings and engagements shared here, so the whole family can share in the joy across every branch.'},
+  {icon:'\uD83D\uDC76',bg:'#e6efe6',type:'New arrival',name:'A new branch grows',when:'Sample announcement',text:'New babies announced here automatically become part of the family tree once approved.'},
+  {icon:'\uD83D\uDD4A\uFE0F',bg:'#ece8e0',type:'Remembrance',name:'Honoring a loved one',when:'Sample announcement',text:'A place to remember and honor family members who have passed, keeping their memory part of the family story.'}
+];
+function renderNews(){
+  let h='';
+  NEWS.forEach(n=>{
+    h+='<div class="ann"><div class="ann-icon" style="background:'+n.bg+'">'+n.icon+'</div>';
+    h+='<div><h4>'+n.name+'<span class="demo-tag">'+n.type+'</span></h4>';
+    h+='<div class="when">'+n.when+'</div><p>'+n.text+'</p></div></div>';
+  });
+  document.getElementById('news').innerHTML=h;
+}
+
+// nav
+document.querySelectorAll('nav button[data-view]').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('nav button[data-view]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+b.dataset.view).classList.add('active');
+  };
+});
+
+// search
+document.getElementById('search').oninput=function(){
+  const q=this.value.toLowerCase().trim();
+  if(!q)return;
+  const hit=Object.values(P).find(p=>p.name.toLowerCase().includes(q)&&p.name!=='Unknown');
+  if(hit){
+    document.querySelector('nav button[data-view=tree]').click();
+    openModal(hit.id);
+  }
+};
+document.getElementById('search').onkeydown=function(e){if(e.key==='Enter')this.oninput();};
+
+renderTree();renderNews();
+// ---- Homeland map ----
+const MAP = {"locs": {"Essequibo": {"x": 245.4, "y": 108.0, "region": "Essequibo County", "now": "Guyana\u2019s largest county, west of the Essequibo River \u2014 the nation\u2019s mightiest river. Known for gold and diamond mining, vast rainforest, and the Essequibo Islands.", "then": "In the early 1900s Essequibo was a frontier of sugar and rice estates along the coast, with the interior largely untouched rainforest. The 1904 arbitration had just fixed its western boundary with Venezuela. Life centered on plantation villages and river transport \u2014 the river was the highway.", "fact": "The Essequibo River is over 1,000 km long \u2014 the longest in Guyana and one of the longest in South America.", "people": ["Hilda Knights"]}, "Berbice": {"x": 329.1, "y": 154.9, "region": "Berbice County", "now": "The easternmost county, bordering Suriname along the Corentyne River. Its hub, New Amsterdam, is one of Guyana\u2019s oldest towns. Known for sugar, rice, and a strong sense of old-country tradition.", "then": "Around 1906, when Hilbert was born, Berbice was a landscape of large sugar estates worked by the descendants of enslaved Africans and indentured laborers from India. New Amsterdam was a genteel colonial town of wooden houses and canals. Community life revolved around the estate, the church, and the market.", "fact": "Berbice was originally a separate Dutch colony, founded in 1627 \u2014 it had its own governor before joining Demerara and Essequibo under British rule.", "people": ["Hilbert Augusta Knights (our founding ancestor)"]}, "Georgetown": {"x": 281.4, "y": 119.7, "region": "Demerara County \u2014 the Capital", "now": "Guyana\u2019s capital and only city, on the Demerara River\u2019s east bank at the Atlantic. Famous for its white wooden colonial architecture, St. George\u2019s Cathedral (one of the tallest wooden churches in the world), the seawall, and bustling Stabroek Market.", "then": "In the early 1900s Georgetown was \u201cthe Garden City of the Caribbean\u201d \u2014 tree-lined avenues, Dutch-built canals, horse-drawn carriages, and grand wooden buildings. It had been a city by Royal Warrant since 1842. Much of the family\u2019s later generations were born here as people moved from the countryside to the capital.", "fact": "Georgetown sits about 6 feet below sea level at high tide \u2014 protected by a seawall and a Dutch-built system of canals and kokers (sluice gates).", "people": ["Carl D Knights", "Carlisle Knights", "Christopher Knights", "Colin Knights", "Conrad (johnny) Knights", "Desiree Knights", "Divine Knights", "Emanuel Knights", "Eunice S. David", "Florian Evadne Knights", "George Terrance Victor Knights", "Horace Knights", "Hubert Anthony (Tony) Knights", "Jacqueline", "Jeanette Duff", "Jennifer Knights", "John Knights", "Ken Knights", "Kerry", "Kirk Knights", "Kwame Knights", "May (Nurse) Knights", "Melvin Knights", "Orlanda Knights", "Patrick Knights", "Robert Griffith", "Robert Knights", "Samuel Knights", "Shamika Knights", "Triceia Nurse", "Wilbert Nurse", "William Arnold (Wootee) Knights"]}}, "diaspora": {}};
+function renderPins(){ return; /* pins drawn in SVG */ 
+  const g=document.getElementById('pins'); if(!g)return; let h='';
+  Object.entries(MAP.locs).forEach(([name,d])=>{
+    h+='<g class="pin" data-loc="'+name+'" onclick="selectLoc(\''+name+'\')">';
+    h+='<circle class="pulse" cx="'+d.x+'" cy="'+d.y+'" r="16"/>';
+    h+='<circle class="dot" cx="'+d.x+'" cy="'+d.y+'" r="7"/>';
+    h+='<text x="'+d.x+'" y="'+(d.y-14)+'" text-anchor="middle">'+name+'</text>';
+    h+='</g>';
+  });
+  g.innerHTML=h;
+}
+function selectLoc(name){
+  document.querySelectorAll('.pin').forEach(p=>p.classList.toggle('active',p.dataset.loc===name));
+  const d=MAP.locs[name];
+  let h='<div class="md-region">'+d.region+'</div><div class="md-name">'+name+'</div>';
+  h+='<div class="md-block"><div class="mb-label"><span class="dotcol" style="background:#3a5a40"></span>Today</div><p>'+d.now+'</p></div>';
+  h+='<div class="md-block"><div class="mb-label"><span class="dotcol" style="background:#9c5a3c"></span>In the early 1900s</div><p>'+d.then+'</p></div>';
+  h+='<div class="md-fact">&#10024; '+d.fact+'</div>';
+  if(d.people && d.people.length){
+    h+='<div class="md-block md-people"><div class="mb-label" style="margin-top:14px"><span class="dotcol" style="background:#CE1126"></span>Family born here ('+d.people.length+')</div>';
+    h+=d.people.map(n=>'<span class="chip">'+n+'</span>').join('');
+    h+='</div>';
+  }
+  document.getElementById('map-detail').innerHTML=h;
+}
+function renderResidences(){
+  const RES = {"New York, USA": {"branch": "Hilda's line", "people": ["Carlisle", "Jacqueline", "Melvin", "Orlando"], "lat": 40.71, "lng": -74.0}, "Antigua": {"branch": "Hilda's line", "people": ["Jennifer"], "lat": 17.06, "lng": -61.8}, "Georgia, USA": {"branch": "Grace's family", "people": ["Grace and family"], "lat": 33.75, "lng": -84.39}, "Florida, USA": {"branch": "Charles's family", "people": ["Charles and family"], "lat": 27.99, "lng": -81.76}, "Kentucky, USA": {"branch": "Charles's family", "people": ["Charles's family"], "lat": 37.84, "lng": -84.27}, "Maryland, USA": {"branch": "Charles's family + Robert's line (Kwame & Shaundel)", "people": ["Charles's family", "Kwame Knights & line", "Shaundel Knights & line"], "lat": 39.05, "lng": -76.64}, "Georgetown, Guyana": {"branch": "Robert's line", "people": ["Clifford Griffith & kids", "Robert Griffith (late) & kids"], "lat": 6.8, "lng": -58.16}};
+  const WORLDPOS={"New York, USA":[120,86],"Maryland, USA":[127,98],"Georgia, USA":[123,108],"Florida, USA":[128,120],"Kentucky, USA":[120,103],"Antigua":[152,128],"Georgetown, Guyana":[150,158]};
+  const wp=document.getElementById("wpins");
+  if(wp){let h="";Object.entries(RES).forEach(([loc,d])=>{const pos=WORLDPOS[loc]||[230,125];
+    h+="<g style=\"cursor:pointer\" onclick=\"showRes(\x27"+loc+"\x27)\">";
+    h+="<circle cx="+pos[0]+" cy="+pos[1]+" r=\"11\" fill=\"#CE1126\" opacity=\"0.22\"/>";
+    h+="<circle cx="+pos[0]+" cy="+pos[1]+" r=\"5.5\" fill=\"#CE1126\" stroke=\"#fff\" stroke-width=\"2\"/>";
+    h+="<text x="+pos[0]+" y="+(pos[1]-10)+" text-anchor=\"middle\" font-family=\"Inter\" font-size=\"9\" font-weight=\"600\" fill=\"#2a2420\">"+loc.split(",")[0]+"</text></g>";});
+    wp.innerHTML=h;}
+  let lh="";Object.entries(RES).forEach(([loc,d])=>{lh+="<div class=\"res-row\" id=\"res-"+loc.replace(/[^a-zA-Z]/g,"")+"\">";
+    lh+="<div class=\"res-loc\">\uD83D\uDCCD "+loc+"</div><div class=\"res-branch\">"+d.branch+"</div>";
+    lh+="<div class=\"res-people\">"+d.people.map(p=>"<span class=\"chip\">"+p+"</span>").join("")+"</div></div>";});
+  document.getElementById("residence-list").innerHTML=lh;
+}
+function showRes(loc){const id="res-"+loc.replace(/[^a-zA-Z]/g,"");const el=document.getElementById(id);
+  if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1500);}}
+
+const REGIONS = {"Barima-Waini": {"county": "Essequibo", "num": 1, "path": "M70,70 L150,40 L210,75 L200,140 L150,165 L95,150 L65,110 Z"}, "Pomeroon-Supenaam": {"county": "Essequibo", "num": 2, "path": "M200,140 L240,120 L262,165 L250,210 L210,205 L200,165 Z"}, "Essequibo Islands-West Demerara": {"county": "Demerara", "num": 3, "path": "M262,165 L290,155 L300,195 L278,215 L255,205 L250,178 Z"}, "Demerara-Mahaica": {"county": "Demerara", "num": 4, "path": "M300,170 L322,165 L330,200 L312,222 L290,210 L295,185 Z"}, "Mahaica-Berbice": {"county": "Berbice", "num": 5, "path": "M330,185 L358,180 L368,220 L345,245 L322,228 L328,205 Z"}, "Cuyuni-Mazaruni": {"county": "Essequibo", "num": 7, "path": "M65,150 L150,165 L210,205 L215,270 L170,320 L100,310 L60,250 L55,190 Z"}, "Potaro-Siparuni": {"county": "Essequibo", "num": 8, "path": "M170,320 L215,270 L270,290 L275,360 L230,400 L175,380 L160,345 Z"}, "Upper Demerara-Berbice": {"county": "Demerara", "num": 10, "path": "M215,270 L255,225 L312,235 L330,290 L300,345 L275,360 L270,290 Z"}, "East Berbice-Corentyne": {"county": "Berbice", "num": 6, "path": "M330,250 L368,225 L390,300 L370,400 L320,440 L300,380 L300,345 L330,290 Z"}, "Upper Takutu-Upper Essequibo": {"county": "Essequibo", "num": 9, "path": "M175,380 L230,400 L275,360 L300,380 L320,440 L280,480 L210,475 L175,430 Z"}};
+const COUNTY_INFO = {
+ "Essequibo":"Guyana\u2019s largest county \u2014 land of gold, diamonds, and vast rainforest. Hilda\u2019s birthplace.",
+ "Demerara":"The central county and home to Georgetown, the capital. Most of the family\u2019s later generations were born here.",
+ "Berbice":"The eastern county on the Corentyne River. Hilbert, our founding ancestor, was born here in 1906."
+};
+function regionClick(name){
+  document.querySelectorAll(".region").forEach(r=>r.classList.toggle("sel",r.dataset.region===name));
+  const r=REGIONS[name];const county=r.county;
+  let h="<div class=\"md-region\">Region "+r.num+" \u00b7 "+county+" County</div>";
+  h+="<div class=\"md-name\">"+name+"</div>";
+  h+="<div class=\"md-block\"><div class=\"mb-label\"><span class=\"dotcol\" style=\"background:#a67c3d\"></span>Historic County</div><p>"+COUNTY_INFO[county]+"</p></div>";
+  const pinHere=Object.entries(MAP.locs).find(([k,v])=>{return false;});
+  document.getElementById("map-detail").innerHTML=h;
+}
+renderPins();renderResidences();
+
+</script>
+</body>
+</html>
